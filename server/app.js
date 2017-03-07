@@ -18,14 +18,25 @@ var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
 var TOKEN_PATH = TOKEN_DIR + 'gmail-nodejs-quickstart.json';
 var HISTORY_PATH = TOKEN_DIR + 'History_id.txt';
 
+fs.readFile('../client_secret.json', function processClientSecrets(err, content) {
+    if (err) {
+        console.log('Error loading client secret file: ' + err);
+        return;
+    }
+    // Authorize a client with the loaded credentials, then call the
+    // Gmail API.
+    authorize(JSON.parse(content), start);
+});
+
 app.listen(3000);
 
 app.get('/users/google/callback', function(req, res) {
     console.log(req.query.code);
-    res.end("boo");
+    res.end("");
 });
+
+
 // Load client secrets from a local file.
-authorize(start);
 
 /**
  * Create an OAuth2 client with the given credentials, and then execute the
@@ -34,10 +45,11 @@ authorize(start);
  * @param {Object} credentials The authorization client credentials.
  * @param {function} callback The callback to call with the authorized client.
  */
-function authorize(callback) {
-      var clientSecret = "YOUR CLIENT SECRET";
-    var clientId = "YOUR CLIENT ID";
-    var redirectUrl ="YOUR REDIRECT URL";
+function authorize(credentials,callback) {
+
+    var clientSecret = credentials.web.client_secret;
+    var clientId = credentials.web.client_id;
+    var redirectUrl = credentials.web.redirect_uris[0];
 
     var auth = new googleAuth();
     var oauth2Client = new auth.OAuth2(clientId, clientSecret, redirectUrl);
@@ -56,6 +68,7 @@ function authorize(callback) {
         }
     });
 }
+
 
 /**
  * Get and store new token after prompting for user authorization, and then
@@ -76,7 +89,7 @@ function getNewToken(oauth2Client, callback) {
         input: process.stdin,
         output: process.stdout
     });
-    rl.question('Enter the code from that page here: ', function(code) {
+    rl.question('Enter the code that appears here and press enter: ', function(code) {
         rl.close();
         oauth2Client.getToken(code, function(err, token) {
             if (err) {
