@@ -35,9 +35,9 @@ authorize(start);
  * @param {function} callback The callback to call with the authorized client.
  */
 function authorize(callback) {
-    var clientSecret = "KZaOO-GM-cRN0mOsM8xx_78e";
-    var clientId = "52910464016-fnip280jvncgt7ljh437btian1e8eu0f.apps.googleusercontent.com";
-    var redirectUrl ="http://localhost:3000/users/google/callback";
+    var clientSecret = "YOUR CLIENT SECRET";
+    var clientId = "YOUR CLIENT ID";
+    var redirectUrl ="YOUR REDIRECT URL";
 
     var auth = new googleAuth();
     var oauth2Client = new auth.OAuth2(clientId, clientSecret, redirectUrl);
@@ -146,31 +146,25 @@ function list(auth){console.log(historyid);
     },  function (err, response) {
         if (err) {
             console.log('The API returned an error: ' + err);
-            /* auth.refreshAccessToken(function(err, tokens) {
-             storeToken(tokens)
-             });*/
+          /* auth.refreshAccessToken(function(err, tokens) {
+           storeToken(tokens)
+           });*/
         }
+        var id = response.history;
+        var newhistoryid=response.historyId;
+        storehistoryid(newhistoryid);
+        console.log(response);
         var msg="";
         try
-        {var id = response.history;
-            historyid=response.historyId;
-            storehistoryid(historyid);
-            console.log(response);
-            console.log(id.length);
+        {
             for(var i=0;id[i];i++){
                 // console.log(id[i].messages[0].id);
 
                 getmessage(id[i].messages[0].id,auth,gmail);
-                if(i==id.length-1){
-                    setTimeout(function (auth){
-                        list(auth);
-                    },5000);}
             }
         }
         catch(err) {console.log("no new messages");
-            setTimeout(function (auth){
-                list(auth);
-            },5000);}
+            return;}
     });
 
 }
@@ -186,8 +180,7 @@ function getmessage(id,auth,gmail) {
 
         var mailto=response.payload.headers[0].value;
         var string="To:"+mailto +"\n" +
-            "Subject: hello\n";
-
+            "Subject: hello";
         var r=base64url.escape(base64url.encode(string));
         console.log(r);
         gmail.users.messages.send({
@@ -196,7 +189,7 @@ function getmessage(id,auth,gmail) {
             resource: {raw:r}}
         )
     })
-    return;
+
 }
 /**
  * Lists the labels in the user's account.
