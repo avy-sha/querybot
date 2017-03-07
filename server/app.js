@@ -35,9 +35,9 @@ authorize(start);
  * @param {function} callback The callback to call with the authorized client.
  */
 function authorize(callback) {
-    var clientSecret = "KZaOO-GM-cRN0mOsM8xx_78e";
-    var clientId = "52910464016-fnip280jvncgt7ljh437btian1e8eu0f.apps.googleusercontent.com";
-    var redirectUrl ="http://localhost:3000/users/google/callback";
+      var clientSecret = "YOUR CLIENT SECRET";
+    var clientId = "YOUR CLIENT ID";
+    var redirectUrl ="YOUR REDIRECT URL";
 
     var auth = new googleAuth();
     var oauth2Client = new auth.OAuth2(clientId, clientSecret, redirectUrl);
