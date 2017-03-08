@@ -2,7 +2,6 @@
  * Created by Abhinav on 05-03-2017.
  */
 var express = require('express');
-var app = express();
 var fs = require('fs');
 var readline = require('readline');
 var google = require('googleapis');
@@ -17,6 +16,14 @@ var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
     process.env.USERPROFILE) + '/.credentials/';
 var TOKEN_PATH = TOKEN_DIR + 'gmail-nodejs-quickstart.json';
 var HISTORY_PATH = TOKEN_DIR + 'History_id.txt';
+var gcredentials="";
+var app=express();
+app.listen(3000);
+
+app.get('/users/google/callback', function(req, res) {
+    console.log(req.query.code);
+    res.end("");
+});
 
 fs.readFile('../client_secret.json', function processClientSecrets(err, content) {
     if (err) {
@@ -25,14 +32,8 @@ fs.readFile('../client_secret.json', function processClientSecrets(err, content)
     }
     // Authorize a client with the loaded credentials, then call the
     // Gmail API.
+    gcredentials=JSON.parse(content);
     authorize(JSON.parse(content), start);
-});
-
-app.listen(3000);
-
-app.get('/users/google/callback', function(req, res) {
-    console.log(req.query.code);
-    res.end("");
 });
 
 
@@ -133,7 +134,6 @@ function storehistoryid(token) {
 
 
 function start(auth){
-    var gmail = google.gmail('v1');
     fs.readFile(HISTORY_PATH,function(err, hId) {
         if (err) {
             console.log(err);
@@ -146,7 +146,8 @@ function start(auth){
 
 }
 
-function list(auth){console.log(historyid);
+function list(auth){
+    console.log(historyid);
     var gmail = google.gmail('v1');
     gmail.users.history.list({
         auth: auth,
@@ -159,11 +160,13 @@ function list(auth){console.log(historyid);
     },  function (err, response) {
         if (err) {
             console.log('The API returned an error: ' + err);
+            getNewToken(auth,start);
+
           /* auth.refreshAccessToken(function(err, tokens) {
            storeToken(tokens)
            });*/
         }
-        var msg="";
+        else{
         try
         {var id = response.history;
             historyid=response.historyId;
@@ -183,23 +186,33 @@ function list(auth){console.log(historyid);
         catch(err) {console.log("no new messages");
         setTimeout(function (auth){
           list(auth);
-        },5000);}
+        },5000);}}
     });
 
 }
 
-function getmessage(id,auth,gmail) {
+function getmessage(id,auth,gmail) {console.log(id);
     gmail.users.messages.get({
         auth: auth,
         userId: 'me',
         id: id,
-        format:'metadata',
-        metadataHeaders: 'From'
     },function (err,response){
-
-        var mailto=response.payload.headers[0].value;
-        var string="To:"+mailto +"\n" +
-            "Subject: hello\n";
+        console.log(response.payload.headers);
+        var mailto=response.payload.headers[15].value;
+        var inputsubject=response.payload.headers[18].value;
+        var subject="";
+        if(inputsubject.replace(/\s/g,'').toLowerCase()=="search:database")
+            subject="Here is the requested query";
+        else{
+            subject="Invalid Query!!";
+        }
+        //console.log(mailto);
+        var string="To:"+mailto+"\n" +
+            "From:Automated bot <automatedquery@gmail.com>\n"+
+            "Content-type: text/html;charset=UTF-8\n"+
+            "MIME-Version: 1.0\n"+
+            "Subject:"+subject+"\n\n"+
+            "<html><h2><B>Here is the body</B></h2></html>\n";
 
         var r=base64url.escape(base64url.encode(string));
         console.log(r);
@@ -237,5 +250,4 @@ function listLabels1(auth) {
         }
     });
 }
-
 
