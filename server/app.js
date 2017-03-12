@@ -227,7 +227,7 @@ function getmessage(id,auth,gmail) {console.log(id);
             inputbody=base64url.decode(inputbody);
             if(inputbody.lastIndexOf("\n")>0) {
                 inputbody= inputbody.substring(0, inputbody.lastIndexOf("\n"));
-                inputbody=inputbody.replace(/\s/g,'').toLowerCase();
+               // inputbody=inputbody.replace(/\s/g,'').toLowerCase();
             }
             makesubject(auth,gmail,mailto,inputsubject,inputbody);
             }
@@ -245,6 +245,9 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody){
     {
         //setTimeout(function(){subject="Here is the requested query";},500);
         var collection=db.collection("dishes");
+        var search = inputbody.split('\n')[0].replace(/\s/g,'').toLowerCase();
+        inputbody=inputbody.split('\n')[1].replace(/\s/g,'').toLowerCase();
+        if(search=="firstname"){
         collection.find({firstname:inputbody}).toArray(function(err, docs) {
             body="";
             subject="Here is the requested query";
@@ -259,6 +262,39 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody){
             send(subject,gmail,auth,mailto,body);
         });
 
+    }
+        else if(search=="lastname"){
+            collection.find({lastname:inputbody}).toArray(function(err, docs) {
+                body="";
+                subject="Here is the requested query";
+                for(var i=0;docs[i];i++){
+                    // body.concat(docs[i].name)
+                    body=body+(i+1)+".<br>";
+                    body=body+"Name:"+docs[i].firstname+" "+docs[i].lastname+"<br>";
+                    body=body+"Id:"+docs[i]._id+"<br><hr>";
+                    //console.log(docs[i].name);
+                }
+
+                send(subject,gmail,auth,mailto,body);
+            });
+
+        }
+        else if(search=="phoneno"){
+            collection.find({phoneno:inputbody}).toArray(function(err, docs) {
+                body="";
+                subject="Here is the requested query";
+                for(var i=0;docs[i];i++){
+                    // body.concat(docs[i].name)
+                    body=body+(i+1)+".<br>";
+                    body=body+"Name:"+docs[i].firstname+" "+docs[i].lastname+"<br>";
+                    body=body+"Id:"+docs[i]._id+"<br><hr>";
+                    //console.log(docs[i].name);
+                }
+
+                send(subject,gmail,auth,mailto,body);
+            });
+
+        }
     }
     else{
         subject="Invalid Query!!";
