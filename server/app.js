@@ -3,6 +3,8 @@
  */
 var express = require('express');
 var fs = require('fs');
+var async=require('async');
+var MongoClient = require('mongodb').MongoClient;
 var readline = require('readline');
 var google = require('googleapis');
 var googleAuth = require('google-auth-library');
@@ -17,8 +19,18 @@ var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
 var TOKEN_PATH = TOKEN_DIR + 'gmail-nodejs-quickstart.json';
 var HISTORY_PATH = TOKEN_DIR + 'History_id.txt';
 var gcredentials="";
+var mongo=require("./setupmongo.js");
 var app=express();
 app.listen(3000);
+//mongo();
+var url = 'mongodb://localhost:27017/automated';
+// Use connect method to connect to the Server
+var db;
+    MongoClient.connect(url, function (err, dbs) {
+
+        console.log("Connected correctly to server");
+        db=dbs;
+    });
 
 app.get('/users/google/callback', function(req, res) {
     console.log(req.query.code);
@@ -65,7 +77,7 @@ function authorize(credentials,callback) {
             getNewToken(oauth2Client, callback);
         } else {
             oauth2Client.credentials = JSON.parse(token);
-            callback(oauth2Client);
+            callback(oauth2Client,list);
         }
     });
 }
@@ -99,7 +111,7 @@ function getNewToken(oauth2Client, callback) {
             }
             oauth2Client.credentials = token;
             storeToken(token);
-            callback(oauth2Client);
+            callback(oauth2Client,list);
         });
     });
 }
@@ -133,7 +145,7 @@ function storehistoryid(token) {
 }
 
 
-function start(auth){
+function start(auth,list){
     fs.readFile(HISTORY_PATH,function(err, hId) {
         if (err) {
             console.log(err);
@@ -171,11 +183,12 @@ function list(auth){
         {var id = response.history;
             historyid=response.historyId;
             storehistoryid(historyid);
-            console.log(response);
+           // console.log(response);
             console.log(id.length);
             for(var i=0;id[i];i++){
                 // console.log(id[i].messages[0].id);
 
+               // async.waterfall([getmessage(id[i].messages[0].id,auth,gmail,send),send(subject,gmail,auth,mailto,body)]);
                 getmessage(id[i].messages[0].id,auth,gmail);
                 if(i==id.length-1){
                 setTimeout(function (auth){
@@ -183,9 +196,11 @@ function list(auth){
                 },5000);}
             }
         }
-        catch(err) {console.log("no new messages");
-        setTimeout(function (auth){
-          list(auth);
+        catch(err) {
+            //console.log(collection);
+            console.log("no new messages");
+            setTimeout(function (auth){
+            list(auth);
         },5000);}}
     });
 
@@ -197,33 +212,64 @@ function getmessage(id,auth,gmail) {console.log(id);
         userId: 'me',
         id: id,
     },function (err,response){
-        console.log(response.payload.headers);
-        var mailto=response.payload.headers[15].value;
-        var inputsubject=response.payload.headers[18].value;
-        var subject="";
-        if(inputsubject.replace(/\s/g,'').toLowerCase()=="search:database")
-            subject="Here is the requested query";
-        else{
-            subject="Invalid Query!!";
+        if (err){console.log("here take a error ");
+            return;}
+        else
+        {   for(var i=0;response.payload.headers[i];i++){
+            if(response.payload.headers[i].name=="From"){
+                var mailto=response.payload.headers[i].value;
+                console.log(mailto);}
+            else if(response.payload.headers[i].name=="Subject")
+                var inputsubject=response.payload.headers[i].value;
         }
-        //console.log(mailto);
-        var string="To:"+mailto+"\n" +
-            "From:Automated bot <automatedquery@gmail.com>\n"+
-            "Content-type: text/html;charset=UTF-8\n"+
-            "MIME-Version: 1.0\n"+
-            "Subject:"+subject+"\n\n"+
-            "<html><h2><B>Here is the body</B></h2></html>\n";
+            var inputbody=response.payload.parts[0].body.data;
+            inputbody =base64url.unescape(inputbody);
+            inputbody=base64url.decode(inputbody);
+            console.log(inputbody);
+            makesubject(auth,gmail,mailto,inputsubject,inputbody);
+            }
 
-        var r=base64url.escape(base64url.encode(string));
-        console.log(r);
-        gmail.users.messages.send({
-            auth: auth,
-            userId: 'me',
-            resource: {raw:r}}
-        )
     })
 return;
 }
+function makesubject(auth,gmail,mailto,inputsubject,inputbody){
+
+
+    //console.log(mailto,inputsubject);
+    var subject;
+    var body="Here is the body";
+    if(inputsubject.replace(/\s/g,'').toLowerCase()=="search_database")
+    {
+        //setTimeout(function(){subject="Here is the requested query";},500);
+        var collection=db.collection("dishes");
+        collection.find({}).toArray(function(err, docs) {
+            subject="Here is the requested query";
+            body=docs[0].name;
+            send(subject,gmail,auth,mailto,body);
+        });
+
+    }
+    else{
+        subject="Invalid Query!!";
+        send(subject,gmail,auth,mailto,body);
+    }
+    }
+
+function yo(subject,gmail,auth,mailto,body){console.log(subject);};
+function send(subject,gmail,auth,mailto,body) { var string="To:"+mailto+"\n" +
+    "From:Automated bot <automatedquery@gmail.com>\n"+
+    "Content-type: text/html;charset=UTF-8\n"+
+    "MIME-Version: 1.0\n"+
+    "Subject:"+subject+"\n\n"+
+    "<html><h2><B>"+body+"</B></h2></html>\n";
+
+    var r=base64url.escape(base64url.encode(string));
+    console.log(r);
+    gmail.users.messages.send({
+        auth: auth,
+        userId: 'me',
+        resource: {raw:r}}
+    )}
 /**
  * Lists the labels in the user's account.
  *
