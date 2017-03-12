@@ -225,7 +225,10 @@ function getmessage(id,auth,gmail) {console.log(id);
             var inputbody=response.payload.parts[0].body.data;
             inputbody =base64url.unescape(inputbody);
             inputbody=base64url.decode(inputbody);
-            console.log(inputbody);
+            if(inputbody.lastIndexOf("\n")>0) {
+                inputbody= inputbody.substring(0, inputbody.lastIndexOf("\n"));
+                inputbody=inputbody.replace(/\s/g,'').toLowerCase();
+            }
             makesubject(auth,gmail,mailto,inputsubject,inputbody);
             }
 
@@ -233,18 +236,26 @@ function getmessage(id,auth,gmail) {console.log(id);
 return;
 }
 function makesubject(auth,gmail,mailto,inputsubject,inputbody){
-
+    console.log(inputbody);
 
     //console.log(mailto,inputsubject);
     var subject;
-    var body="Here is the body";
+    var body="Subject or query is invalid.";
     if(inputsubject.replace(/\s/g,'').toLowerCase()=="search_database")
     {
         //setTimeout(function(){subject="Here is the requested query";},500);
         var collection=db.collection("dishes");
-        collection.find({}).toArray(function(err, docs) {
+        collection.find({firstname:inputbody}).toArray(function(err, docs) {
+            body="";
             subject="Here is the requested query";
-            body=docs[0].name;
+            for(var i=0;docs[i];i++){
+           // body.concat(docs[i].name)
+            body=body+(i+1)+".<br>";
+            body=body+"Name:"+docs[i].firstname+" "+docs[i].lastname+"<br>";
+            body=body+"Id:"+docs[i]._id+"<br><hr>";
+            //console.log(docs[i].name);
+            }
+
             send(subject,gmail,auth,mailto,body);
         });
 
