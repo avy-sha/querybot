@@ -152,13 +152,13 @@ function start(auth,list){
         } else {
             historyid=JSON.parse(hId);
 
-            list(auth);
+            list(auth,getmessage);
         }
     });
 
 }
 
-function list(auth){
+function list(auth,getmessage){
     console.log(historyid);
     var gmail = google.gmail('v1');
     gmail.users.history.list({
@@ -189,10 +189,10 @@ function list(auth){
                 // console.log(id[i].messages[0].id);
 
                // async.waterfall([getmessage(id[i].messages[0].id,auth,gmail,send),send(subject,gmail,auth,mailto,body)]);
-                getmessage(id[i].messages[0].id,auth,gmail);
+                getmessage(id[i].messages[0].id,auth,gmail,makesubject);
                 if(i==id.length-1){
                 setTimeout(function (auth){
-                    list(auth);
+                    list(auth,getmessage);
                 },5000);}
             }
         }
@@ -200,13 +200,13 @@ function list(auth){
             //console.log(collection);
             console.log("no new messages");
             setTimeout(function (auth){
-            list(auth);
+            list(auth,getmessage);
         },5000);}}
     });
 
 }
 
-function getmessage(id,auth,gmail) {console.log(id);
+function getmessage(id,auth,gmail,makesubject) {console.log(id);
     gmail.users.messages.get({
         auth: auth,
         userId: 'me',
@@ -229,13 +229,13 @@ function getmessage(id,auth,gmail) {console.log(id);
                 inputbody= inputbody.substring(0, inputbody.lastIndexOf("\n"));
                // inputbody=inputbody.replace(/\s/g,'').toLowerCase();
             }
-            makesubject(auth,gmail,mailto,inputsubject,inputbody);
+            makesubject(auth,gmail,mailto,inputsubject,inputbody,send);
             }
 
     })
 return;
 }
-function makesubject(auth,gmail,mailto,inputsubject,inputbody){
+function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
     console.log(inputbody);
 
     //console.log(mailto,inputsubject);
