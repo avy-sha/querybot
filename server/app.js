@@ -212,7 +212,7 @@ function getmessage(id,auth,gmail,makesubject) {console.log(id);
         userId: 'me',
         id: id,
     },function (err,response){
-        if (err){console.log("here take a error ");
+        if (err){console.log("here take a error:"+err);
             return;}
         else
         {   for(var i=0;response.payload.headers[i];i++){
@@ -241,88 +241,103 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
     //console.log(mailto,inputsubject);
     var subject;
     var body="Subject or query is invalid.";
-    if(inputsubject.replace(/\s/g,'').toLowerCase()=="search_database")
-    {
+    if(inputsubject.replace(/\s/g,'').toLowerCase()=="search_database") {
         //setTimeout(function(){subject="Here is the requested query";},500);
-        var collection=db.collection("dishes");
-        var search = inputbody.split('\n')[0].replace(/\s/g,'').toLowerCase();
-        inputbody=inputbody.split('\n')[1].toLowerCase();
-        if(search=="firstname"){
-        collection.find({firstname:inputbody}).toArray(function(err, docs) {
-            body="";
-            subject="Here is the requested query";
-            for(var i=0;docs[i];i++){
-           // body.concat(docs[i].name)
-            body=body+(i+1)+".<br>";
-            body=body+"Name:"+docs[i].firstname+" "+docs[i].lastname+"<br>";
-            body=body+"Id:"+docs[i]._id+"<br><hr>";
-            //console.log(docs[i].name);
+        var collection = db.collection("dishes");
+        var search = inputbody.split('\n')[0].replace(/\s/g, '').toLowerCase();
+        if (!inputbody.split('\n')[1]) {
+            body = "No information to search was given in 2nd line.\nThis was an invalid query for a valid query please refer to the instructions below:";
+            subject = "No information to search.";
+            send(subject, gmail, auth, mailto, body);
+
+        }
+        else {
+            inputbody = inputbody.split('\n')[1].toLowerCase();
+            if (search == "firstname") {
+                collection.find({firstname: inputbody}).toArray(function (err, docs) {
+                    body = "";
+                    subject = "Here is the requested query";
+                    for (var i = 0; docs[i]; i++) {
+                        // body.concat(docs[i].name)
+                        body = body + (i + 1) + ".<br>";
+                        body = body + "Name:" + docs[i].firstname + " " + docs[i].lastname + "<br>";
+                        body = body + "Id:" + docs[i]._id + "<br><hr>";
+                        //console.log(docs[i].name);
+                    }
+
+                    send(subject, gmail, auth, mailto, body);
+                });
+
             }
+            else if (search == "lastname") {
+                console.log("required by lastname");
+                collection.find({lastname: inputbody}).toArray(function (err, docs) {
+                    body = "";
+                    subject = "Here is the requested query";
+                    for (var i = 0; docs[i]; i++) {
+                        // body.concat(docs[i].name)
+                        body = body + (i + 1) + ".<br>";
+                        body = body + "Name:" + docs[i].firstname + " " + docs[i].lastname + "<br>";
+                        body = body + "Id:" + docs[i]._id + "<br><hr>";
+                        //console.log(docs[i].name);
+                    }
 
-            send(subject,gmail,auth,mailto,body);
-        });
+                    send(subject, gmail, auth, mailto, body);
+                });
 
-    }
-        else if(search=="lastname"){
-            console.log("required by lastname");
-            collection.find({lastname:inputbody}).toArray(function(err, docs) {
-                body="";
-                subject="Here is the requested query";
-                for(var i=0;docs[i];i++){
-                    // body.concat(docs[i].name)
-                    body=body+(i+1)+".<br>";
-                    body=body+"Name:"+docs[i].firstname+" "+docs[i].lastname+"<br>";
-                    body=body+"Id:"+docs[i]._id+"<br><hr>";
-                    //console.log(docs[i].name);
-                }
+            }
+            else if (search == "phoneno") {
+                console.log("required by phoneno");
+                collection.find({phoneno: inputbody}).toArray(function (err, docs) {
+                    body = "";
+                    subject = "Here is the requested query";
+                    for (var i = 0; docs[i]; i++) {
+                        // body.concat(docs[i].name)
+                        body = body + (i + 1) + ".<br>";
+                        body = body + "Name:" + docs[i].firstname + " " + docs[i].lastname + "<br>";
+                        body = body + "Id:" + docs[i]._id + "<br><hr>";
+                        //console.log(docs[i].name);
+                    }
 
-                send(subject,gmail,auth,mailto,body);
-            });
+                    send(subject, gmail, auth, mailto, body);
+                });
 
+            }
+            else if (search == "name") {
+                console.log("required by name");
+                var firstname = inputbody.split(' ')[0].replace(/\s/g, '');
+                var lastname = inputbody.split(' ')[1].replace(/\s/g, '');
+                console.log(firstname + "\n" + lastname);
+                collection.find({
+                    firstname: firstname,
+                    lastname: lastname
+                }).toArray(function (err, docs) {
+                    body = "";
+                    subject = "Here is the requested query";
+                    for (var i = 0; docs[i]; i++) {
+                        // body.concat(docs[i].name)
+                        body = body + (i + 1) + ".<br>";
+                        body = body + "Name:" + docs[i].firstname + " " + docs[i].lastname + "<br>";
+                        body = body + "Id:" + docs[i]._id + "<br><hr>";
+                        //console.log(docs[i].name);
+                    }
+
+                    send(subject, gmail, auth, mailto, body);
+                });
+            }
+            else {
+                subject = "Invalid Query!!";
+                body = "This was an invalid query.\nFor a valid query please refer to the instructions below:";
+                send(subject, gmail, auth, mailto, body);
+            }
+        }}
+    else
+        {
+            subject = "Invalid Query!!";
+            body = "This was an invalid query for a valid query please refer to the instructions below:";
+            send(subject, gmail, auth, mailto, body);
         }
-        else if(search=="phoneno"){
-            console.log("required by phoneno");
-            collection.find({phoneno:inputbody}).toArray(function(err, docs) {
-                body="";
-                subject="Here is the requested query";
-                for(var i=0;docs[i];i++){
-                    // body.concat(docs[i].name)
-                    body=body+(i+1)+".<br>";
-                    body=body+"Name:"+docs[i].firstname+" "+docs[i].lastname+"<br>";
-                    body=body+"Id:"+docs[i]._id+"<br><hr>";
-                    //console.log(docs[i].name);
-                }
 
-                send(subject,gmail,auth,mailto,body);
-            });
-
-        }
-        else if(search=="name"){
-            console.log("required by name");
-            var firstname=inputbody.split(' ')[0].replace(/\s/g,'');
-            var lastname=inputbody.split(' ')[1].replace(/\s/g,'');
-            console.log(firstname+"\n"+lastname);
-            collection.find({firstname:firstname,
-                             lastname:lastname}).toArray(function(err, docs) {
-                body="";
-                subject="Here is the requested query";
-                for(var i=0;docs[i];i++){
-                    // body.concat(docs[i].name)
-                    body=body+(i+1)+".<br>";
-                    body=body+"Name:"+docs[i].firstname+" "+docs[i].lastname+"<br>";
-                    body=body+"Id:"+docs[i]._id+"<br><hr>";
-                    //console.log(docs[i].name);
-                }
-
-                send(subject,gmail,auth,mailto,body);
-            });
-
-        }
-    }
-    else{
-        subject="Invalid Query!!";
-        send(subject,gmail,auth,mailto,body);
-    }
     }
 
 function yo(subject,gmail,auth,mailto,body){console.log(subject);};
