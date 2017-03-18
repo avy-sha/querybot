@@ -246,7 +246,7 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
         //setTimeout(function(){subject="Here is the requested query";},500);
         var collection=db.collection("dishes");
         var search = inputbody.split('\n')[0].replace(/\s/g,'').toLowerCase();
-        inputbody=inputbody.split('\n')[1].replace(/\s/g,'').toLowerCase();
+        inputbody=inputbody.split('\n')[1].toLowerCase();
         if(search=="firstname"){
         collection.find({firstname:inputbody}).toArray(function(err, docs) {
             body="";
@@ -264,6 +264,7 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
 
     }
         else if(search=="lastname"){
+            console.log("required by lastname");
             collection.find({lastname:inputbody}).toArray(function(err, docs) {
                 body="";
                 subject="Here is the requested query";
@@ -280,7 +281,29 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
 
         }
         else if(search=="phoneno"){
+            console.log("required by phoneno");
             collection.find({phoneno:inputbody}).toArray(function(err, docs) {
+                body="";
+                subject="Here is the requested query";
+                for(var i=0;docs[i];i++){
+                    // body.concat(docs[i].name)
+                    body=body+(i+1)+".<br>";
+                    body=body+"Name:"+docs[i].firstname+" "+docs[i].lastname+"<br>";
+                    body=body+"Id:"+docs[i]._id+"<br><hr>";
+                    //console.log(docs[i].name);
+                }
+
+                send(subject,gmail,auth,mailto,body);
+            });
+
+        }
+        else if(search=="name"){
+            console.log("required by name");
+            var firstname=inputbody.split(' ')[0].replace(/\s/g,'');
+            var lastname=inputbody.split(' ')[1].replace(/\s/g,'');
+            console.log(firstname+"\n"+lastname);
+            collection.find({firstname:firstname,
+                             lastname:lastname}).toArray(function(err, docs) {
                 body="";
                 subject="Here is the requested query";
                 for(var i=0;docs[i];i++){
