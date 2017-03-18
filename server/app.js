@@ -141,7 +141,7 @@ function storehistoryid(token) {
         }
     }
     fs.writeFile(HISTORY_PATH, JSON.stringify(token));
-    console.log('Token stored to ' + HISTORY_PATH);
+   // console.log('Token stored to ' + HISTORY_PATH);
 }
 
 
@@ -254,6 +254,8 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
         else {
             inputbody = inputbody.split('\n')[1].toLowerCase();
             if (search == "firstname") {
+                inputbody = inputbody.replace(/\s/g, '');
+                console.log("required by firstname");
                 collection.find({firstname: inputbody}).toArray(function (err, docs) {
                     body = "";
                     subject = "Here is the requested query";
@@ -261,6 +263,7 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
                         // body.concat(docs[i].name)
                         body = body + (i + 1) + ".<br>";
                         body = body + "Name:" + docs[i].firstname + " " + docs[i].lastname + "<br>";
+                        body = body + "Phone no:" + docs[i].phoneno + "<br>";
                         body = body + "Id:" + docs[i]._id + "<br><hr>";
                         //console.log(docs[i].name);
                     }
@@ -270,6 +273,7 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
 
             }
             else if (search == "lastname") {
+                inputbody = inputbody.replace(/\s/g, '');
                 console.log("required by lastname");
                 collection.find({lastname: inputbody}).toArray(function (err, docs) {
                     body = "";
@@ -278,6 +282,7 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
                         // body.concat(docs[i].name)
                         body = body + (i + 1) + ".<br>";
                         body = body + "Name:" + docs[i].firstname + " " + docs[i].lastname + "<br>";
+                        body = body + "Phone no:" + docs[i].phoneno + "<br>";
                         body = body + "Id:" + docs[i]._id + "<br><hr>";
                         //console.log(docs[i].name);
                     }
@@ -287,6 +292,7 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
 
             }
             else if (search == "phoneno") {
+                inputbody = inputbody.replace(/\s/g, '');
                 console.log("required by phoneno");
                 collection.find({phoneno: inputbody}).toArray(function (err, docs) {
                     body = "";
@@ -295,6 +301,7 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
                         // body.concat(docs[i].name)
                         body = body + (i + 1) + ".<br>";
                         body = body + "Name:" + docs[i].firstname + " " + docs[i].lastname + "<br>";
+                        body = body + "Phone no:" + docs[i].phoneno + "<br>";
                         body = body + "Id:" + docs[i]._id + "<br><hr>";
                         //console.log(docs[i].name);
                     }
@@ -318,6 +325,7 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
                         // body.concat(docs[i].name)
                         body = body + (i + 1) + ".<br>";
                         body = body + "Name:" + docs[i].firstname + " " + docs[i].lastname + "<br>";
+                        body = body + "Phone no:" + docs[i].phoneno + "<br>";
                         body = body + "Id:" + docs[i]._id + "<br><hr>";
                         //console.log(docs[i].name);
                     }
