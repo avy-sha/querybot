@@ -246,7 +246,7 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
         var collection = db.collection("dishes");
         var search = inputbody.split('\n')[0].replace(/\s/g, '').toLowerCase();
         if (!inputbody.split('\n')[1]) {
-            body = "No information to search was given in 2nd line.\nThis was an invalid query for a valid query please refer to the instructions below:";
+            body = "No information to search was given.\nThis was an invalid query for a valid query please refer to the instructions below:";
             subject = "No information to search.";
             send(subject, gmail, auth, mailto, body);
 
