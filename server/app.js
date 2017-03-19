@@ -246,7 +246,7 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
         var collection = db.collection("dishes");
         var search = inputbody.split('\n')[0].replace(/\s/g, '').toLowerCase();
         if (!inputbody.split('\n')[1]) {
-            body = "No information to search was given.\nThis was an invalid query for a valid query please refer to the instructions below:";
+            body = "No information to search was given in 2nd line.\nThis was an invalid query for a valid query please refer to the instructions below:";
             subject = "No information to search.";
             send(subject, gmail, auth, mailto, body);
 
@@ -257,9 +257,11 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
                 inputbody = inputbody.replace(/\s/g, '');
                 console.log("required by firstname");
                 collection.find({firstname: inputbody}).toArray(function (err, docs) {
-                    body = "";
+                    body = "No entry with this detail in the database";
                     subject = "Here is the requested query";
                     for (var i = 0; docs[i]; i++) {
+                        if(i==0)
+                            body="";
                         // body.concat(docs[i].name)
                         body = body + (i + 1) + ".<br>";
                         body = body + "Name:" + docs[i].firstname + " " + docs[i].lastname + "<br>";
@@ -276,9 +278,11 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
                 inputbody = inputbody.replace(/\s/g, '');
                 console.log("required by lastname");
                 collection.find({lastname: inputbody}).toArray(function (err, docs) {
-                    body = "";
+                    bbody = "No entry with this detail in the database";
                     subject = "Here is the requested query";
                     for (var i = 0; docs[i]; i++) {
+                        if(i==0)
+                            body="";
                         // body.concat(docs[i].name)
                         body = body + (i + 1) + ".<br>";
                         body = body + "Name:" + docs[i].firstname + " " + docs[i].lastname + "<br>";
@@ -295,9 +299,11 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
                 inputbody = inputbody.replace(/\s/g, '');
                 console.log("required by phoneno");
                 collection.find({phoneno: inputbody}).toArray(function (err, docs) {
-                    body = "";
+                    body = "No entry with this detail in the database";
                     subject = "Here is the requested query";
                     for (var i = 0; docs[i]; i++) {
+                        if(i==0)
+                            body="";
                         // body.concat(docs[i].name)
                         body = body + (i + 1) + ".<br>";
                         body = body + "Name:" + docs[i].firstname + " " + docs[i].lastname + "<br>";
@@ -319,9 +325,11 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
                     firstname: firstname,
                     lastname: lastname
                 }).toArray(function (err, docs) {
-                    body = "";
+                    body = "No entry with this detail in the database";
                     subject = "Here is the requested query";
                     for (var i = 0; docs[i]; i++) {
+                        if(i==0)
+                            body="";
                         // body.concat(docs[i].name)
                         body = body + (i + 1) + ".<br>";
                         body = body + "Name:" + docs[i].firstname + " " + docs[i].lastname + "<br>";
