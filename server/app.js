@@ -10,6 +10,8 @@ var google = require('googleapis');
 var googleAuth = require('google-auth-library');
 var type = require('type-of-is');
 var base64url = require('base64-url');
+var request = require('request');
+var cheerio = require('cheerio');
 var historyid;
 // If modifying these scopes, delete your previously saved credentials
 // at ~/.credentials/gmail-nodejs-quickstart.json
@@ -19,17 +21,21 @@ var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
 var TOKEN_PATH = TOKEN_DIR + 'gmail-nodejs-quickstart.json';
 var HISTORY_PATH = TOKEN_DIR + 'History_id.txt';
 var gcredentials="";
-var mongo=require("./setupmongo.js");
+var movielink="http://www.imdb.com";
+
 var app=express();
 app.listen(3000);
-//mongo();
 var url = 'mongodb://localhost:27017/automated';
 // Use connect method to connect to the Server
 var db;
     MongoClient.connect(url, function (err, dbs) {
-
+        if(err){
+            console.log("error connecting the database");
+            return;
+        }
+        else{
         console.log("Connected correctly to server");
-        db=dbs;
+        db=dbs;}
     });
 
 app.get('/users/google/callback', function(req, res) {
@@ -201,7 +207,7 @@ function list(auth,getmessage){
             console.log("no new messages");
             setTimeout(function (auth){
             list(auth,getmessage);
-        },5000);}}
+        },10000);}}
     });
 
 }
@@ -241,7 +247,7 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
     //console.log(mailto,inputsubject);
     var subject;
     var body="Subject or query is invalid.";
-    if(inputsubject.replace(/\s/g,'').toLowerCase()=="search_database") {
+    if(inputsubject.replace(/\s/g,'').toLowerCase()=="database") {
         //setTimeout(function(){subject="Here is the requested query";},500);
         var collection = db.collection("dishes");
         var search = inputbody.split('\n')[0].replace(/\s/g, '').toLowerCase();
@@ -260,8 +266,7 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
                     body = "No entry with this detail in the database";
                     subject = "Here is the requested query";
                     for (var i = 0; docs[i]; i++) {
-                        if(i==0)
-                            body="";
+                        if(i==0) body="";
                         // body.concat(docs[i].name)
                         body = body + (i + 1) + ".<br>";
                         body = body + "Name:" + docs[i].firstname + " " + docs[i].lastname + "<br>";
@@ -278,7 +283,7 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
                 inputbody = inputbody.replace(/\s/g, '');
                 console.log("required by lastname");
                 collection.find({lastname: inputbody}).toArray(function (err, docs) {
-                    bbody = "No entry with this detail in the database";
+                    body = "NO entry with this detail in the database";
                     subject = "Here is the requested query";
                     for (var i = 0; docs[i]; i++) {
                         if(i==0)
@@ -299,7 +304,7 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
                 inputbody = inputbody.replace(/\s/g, '');
                 console.log("required by phoneno");
                 collection.find({phoneno: inputbody}).toArray(function (err, docs) {
-                    body = "No entry with this detail in the database";
+                    body = "NO entry with this detail in the database";
                     subject = "Here is the requested query";
                     for (var i = 0; docs[i]; i++) {
                         if(i==0)
@@ -325,7 +330,7 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
                     firstname: firstname,
                     lastname: lastname
                 }).toArray(function (err, docs) {
-                    body = "No entry with this detail in the database";
+                    body = "NO entry with this detail in the database";
                     subject = "Here is the requested query";
                     for (var i = 0; docs[i]; i++) {
                         if(i==0)
@@ -347,6 +352,43 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
                 send(subject, gmail, auth, mailto, body);
             }
         }}
+        else if(inputsubject.replace(/\s/g,'').toLowerCase()=="movie") {
+        inputbody = inputbody.split('\n')[0].toLowerCase();
+        url = 'http://www.imdb.com/find?ref_=nv_sr_fn&q='+inputbody+'&s=all';
+        body = "";
+        subject = "Here is the requested query";
+        var data=[];
+        request(url, function(error, response, html){
+            if(!error){
+                var $ = cheerio.load(html);
+
+                var title, link;
+
+                $('.result_text a').each(function(i, elem){
+                    data[i]= $(this);
+                });
+                title = data[0].text();
+                link=   data[0].attr("href");
+                link=movielink+link;
+
+            }
+            console.log(link);
+            request(link, function(err, resp, htm){
+                if(!error){
+                    var $ = cheerio.load(htm);
+
+                    $('.title_wrapper').each(function(i, elem){
+                        data[i]= $(this);
+                    })
+                    ;
+                    body=data[0].html();
+                    send(subject, gmail, auth, mailto, body);
+
+                }
+
+            })
+        })
+    }
     else
         {
             subject = "Invalid Query!!";
@@ -356,7 +398,7 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
 
     }
 
-function yo(subject,gmail,auth,mailto,body){console.log(subject);};
+//function yo(subject,gmail,auth,mailto,body){console.log(subject);};
 function send(subject,gmail,auth,mailto,body) { var string="To:"+mailto+"\n" +
     "From:Automated bot <automatedquery@gmail.com>\n"+
     "Content-type: text/html;charset=UTF-8\n"+
