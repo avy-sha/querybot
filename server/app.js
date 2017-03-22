@@ -376,12 +376,21 @@ function makesubject(auth,gmail,mailto,inputsubject,inputbody,send){
             request(link, function(err, resp, htm){
                 if(!error){
                     var $ = cheerio.load(htm);
-
+                    var data1,data2;
                     $('.title_wrapper').each(function(i, elem){
                         data[i]= $(this);
-                    })
-                    ;
+                    });
+                    $('.ratingValue').filter(function(){
+                        data1 = $(this);
+                    });
+                    $('.plot_summary').filter(function(){
+                        data2 = $(this);
+                    });
                     body=data[0].html();
+                    body=body+data1.html();
+                    body=body+data2.html();
+                    body=body.replace(/href="/g,'href="http://www.imdb.com');
+                    console.log(body);
                     send(subject, gmail, auth, mailto, body);
 
                 }
